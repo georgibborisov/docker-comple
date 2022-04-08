@@ -2,8 +2,24 @@ sudo: required
 services:
   - docker
 
-before_install:
+before_install: #you can add additional build install script here to build other project
   - docker build -t georgiborisov/react-test -f ./client/Dockerfile.dev ./client
 
-script:
+script: #you can add as many scripts here as you want to
   - docker run -e CI=true georgiborisov/react-test npm test
+
+after_success:
+  - docker build -t georgiborisov/multi-client ./client
+  - docker build -t georgiborisov/multi-nginx ./nginx
+  - docker build -t georgiborisov/multi-server ./server
+  - docker build -t georgiborisov/multi-worker ./worker
+  #login to docker CLI(docker login)
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #take those images and push them to dockerhub
+  - docker push georgiborisov/multi-client 
+  - docker push georgiborisov/multi-nginx
+  - docker push georgiborisov/multi-server
+  - docker push georgiborisov/multi-worker
+
+
+
